@@ -43,6 +43,8 @@ class DelTagFilter(pipesAndFilters.ThreadFilters):
         assert(None != sinkPipe)
         self.__endTag = '>'
         self.__state = STATE_ENUM.FIND_STARTTAG
+        self.__startTagPosition  = 0                # location of start tag
+        self.__endTagPosition    = 0               # location of end tag
 
     def run(self):
         while True :
@@ -59,5 +61,5 @@ class DelTagFilter(pipesAndFilters.ThreadFilters):
             self.__sinkPipe.push(self.__data)       # send data
 
     def __process():
-        while 
+        while True : 
             
