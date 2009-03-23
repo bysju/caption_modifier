@@ -1,4 +1,4 @@
-import const, Filters, queue
+import const, Filters, queue, sys
 
 class BadIniFile(Exception):
     pass
@@ -32,7 +32,7 @@ class Factory:
         keyValueList  = line.split( const.SEP_KEY_VALUE )
 
         if 2 != len(keyValueList) :  # must conist key : value
-            raise BadIniFile "Invalid key value IniFile (%s)" % line
+            raise BadIniFile("Invalid key value IniFile (%s)" % line )
 
         if const.FILTERS == keyValueList[0] :  # filters is plural
             self.__dic[keyValueList[0] ] = keyValueList[1]
@@ -41,7 +41,7 @@ class Factory:
 
         else:
             if 1 != len( keyValueList[1].split( const.SEP_VALUE ) ) :
-                raise BadIniFile "Too many value IniFile (%s)"% line
+                raise BadIniFile( "Too many value IniFile (%s)"% line)
             self.__dic[keyValueList[0] ] = keyValueList[1]
 
     def create(self, sourceFile, destFile):
@@ -83,7 +83,7 @@ class Factory:
         expList = expression.split( const.SEP_ARGUMENT )
 
         if 2 != len(expList) :
-            raise BadIniFile "Invalid class expression (%s)"% expression
+            raise BadIniFile( "Invalid class expression (%s)"% expression)
 
         strExp = expList[0] + "("
 
@@ -126,10 +126,10 @@ def main():
 
         #finish
     else:
-        print "usage : [sourceFile] [destFile] [iniFile]"
+        print ("usage : [sourceFile] [destFile] [iniFile]")
 
         
-if __main__ == '__main__':
+if __name__ == "__main__":
     main()
                           
                           
