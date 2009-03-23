@@ -1,6 +1,11 @@
-import pipesAndFilters, queuePipe
+import  threading
 
-error = pipesAndFilters.Error()
+class TERMINATE:
+    pass
+
+class Error:
+    errCode = 0
+    errDesc = ""
 
 class STATE_ENUM:
     FIND_STARTTAG = 0
@@ -9,10 +14,13 @@ class STATE_ENUM:
 class ERORR_CODE:
     TAG_NOT_MATCH = 0
 
-class SrcFileFilter(pipesAndFilters.ThreadFilters):
-    def __init__(self, sourceFile,  sinkPipe ):
-        pipesAndFilters.ThreadFilters.__init__(None, sinkPipe)
+error = Error()
+
+class SrcFileFilter(threading.Thread):
+    def __init__(self, sinkPipe , sourceFile):
+        self.__sinkPipe = sinkPipe
         self.__file = open(sourceFile)
+        threading.Thread.__init__(self)
         assert(None != sinkPipe)
     def run(self):      # run provieds thread logic
         #read file
@@ -22,11 +30,12 @@ class SrcFileFilter(pipesAndFilters.ThreadFilters):
 
         self.__sinkPipe.put( queuePipe.TERMINATE)  #terminate job
 
-class SinkFileFilter(pipesAndFilters.ThreadFilters):
-    def __init__(self, sinkFile, sourcePipe  ):
-        pipesAndFilters.ThreadFilters.__init__(sourcePipe, None)
+class SinkFileFilter(threading.Thread):
+    def __init__(self, sourcePipe , sinkFile ):
+        self.__sourcePipe = sourcePipe
         self.__file = open(sinkFile, 'w')
         assert(None != sourcePipe)
+        threading.Thread.__init__(self)
     def run(self):
         data = self.__sourcePipe.get()
         if isinstance( data, queuePipe.TERMINATE ) :
@@ -35,9 +44,10 @@ class SinkFileFilter(pipesAndFilters.ThreadFilters):
         self.__file.write(data)
 
 
-class DelTagFilter(pipesAndFilters.ThreadFilters):
-    def __init__(self, tagList, sourcePipe, sinkPipe,  ):
-        pipesAndFilters.ThreadFilters.__init(sourcePipe, sinkPipe)
+class DelTagFilter(threading.Thread):
+    def __init__(self,  sourcePipe, sinkPipe, tagList ):
+        self.__sourcePipe = sourcePipe
+        self.__sinkPipe = sinkPipe
         self.__tagList = tagList
         assert(None != sourcePipe)
         assert(None != sinkPipe)
@@ -45,11 +55,12 @@ class DelTagFilter(pipesAndFilters.ThreadFilters):
         self.__state = STATE_ENUM.FIND_STARTTAG
         self.__startTagPosition  = 0                # location of start tag
         self.__endTagPosition    = 0               # location of end tag
+        threading.Thread.__init__(self)
 
     def run(self):
         while True :
             self.__data = self.__sourcePipe.get() # read data
-            if isinstance( data, queuePipe.TERMINATE ) :
+            if isinstance( self.__data, queuePipe.TERMINATE ) :
                 if STATE_ENUM.FIND_STARTTAG != self.__state :
                     error.errDesc = "TAG NOT MATCH"
                     error.errCode = ERROR_CODE.TAG_NOT_MATCH
@@ -62,7 +73,7 @@ class DelTagFilter(pipesAndFilters.ThreadFilters):
 
             self.__sinkPipe.put(self.__data)       # send data
 
-    def __process():
+    def __process(self):
         while True :
             if STATE_ENUM.FIND_STARTTAG == self.__state :
                 

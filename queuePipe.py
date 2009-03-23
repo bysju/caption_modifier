@@ -1,3 +1,5 @@
+#not used
+
 import pipesAndFilters, queue
 
 class Empty(Exception):
@@ -24,5 +26,5 @@ class QueuePipe(pipesAndFilters.PipesInterface):
 
     def pull( self ):
         data = self.__queue.get()       #block if queue is empty
-            return data
+        return data
     

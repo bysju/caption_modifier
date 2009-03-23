@@ -1,8 +1,11 @@
+#not used
+
 import threading
 
 class Error:
-    self.errCode
-    self.errDesc
+    def __init__(self):
+        self.errCode = 0
+        self.errDesc = ""
 
 class PipesInterface:
     def push( self, data ):
