@@ -29,6 +29,10 @@ class Factory:
         for line in file.readlines():
             line = line.strip()
             line = line.strip(os.linesep)
+
+            if 0 == line.find('#') :  # # is comment
+                continue
+            
             if '' != line:
                 self.__innerLoad(line)
 
