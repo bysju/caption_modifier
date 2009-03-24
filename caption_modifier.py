@@ -1,4 +1,4 @@
-import const, Filters, queue, sys
+import const, Filters, queue, sys, os, logging
 
 class BadIniFile(Exception):
     pass
@@ -9,22 +9,28 @@ const.PIPE = "pipe"
 const.FILTERS = "filters"
 
 const.SEP_KEY_VALUE = ":"
-const.SEP_VALUE = ","
+const.SEP_VALUE = "^"
 const.SEP_ARGUMENT = "|"
 
 
 class Factory:
     def __init__(self, iniFile):  #load iniFile
-        __load(iniFile)
+        
         self.__dic = {}
         self.__pipeList = []
         self.__filterList = []
 
+        self.__load(iniFile)
+
     def __load(self, iniFile):
+        logging.info( 'Factory __load :' + iniFile)
         file = open(iniFile)
         #make dictionary
         for line in file.readlines():
-            __innerLoad(line)
+            line = line.strip()
+            line = line.strip(os.linesep)
+            if '' != line:
+                self.__innerLoad(line)
 
 
     def __innerLoad(self, line):
@@ -46,12 +52,12 @@ class Factory:
 
     def create(self, sourceFile, destFile):
         """ make queue and soruceFilter"""
-        queueSrc = __makeClass( self.__dic[const.PIPE] )
+        queueSrc = self.__makeClass( self.__dic[const.PIPE] )
         argList = []
         argList.append(queueSrc)
         argList.append(sourceFile)
         
-        srcFilter = __makeClass( self.__dic[const.SOURCE], argList ) 
+        srcFilter = self.__makeClass( self.__dic[const.SOURCE], argList ) 
 
         self.__pipeList.append( queueSrc)
         self.__filterList.append( srcFilter)
@@ -59,14 +65,14 @@ class Factory:
         """ make Filters """
         sourcePipe = queueSrc
         for filterExp in self.__dic[const.FILTERS].split( const.SEP_VALUE ) :
-            queue = __makeClass( self.__dic[const.PIPE] )
+            queue = self.__makeClass( self.__dic[const.PIPE] )
                                  
             sinkPipe = queue
             argList = []
             argList.append( sourcePipe)
             argList.append( sinkPipe)
                
-            centerFilter =  __makeClass( filterExp , argList)
+            centerFilter =  self.__makeClass( filterExp , argList)
             self.__pipeList.append(queue)
             self.__filterList.append(centerFilter)
             sourcePipe = queue
@@ -75,25 +81,29 @@ class Factory:
         argList = []
         argList.append( sinkPipe)
         argList.append( destFile)
-        sinkFilter = __makeClass( self.__dic[const.SINK], argList ) 
+        sinkFilter = self.__makeClass( self.__dic[const.SINK], argList ) 
         self.__filterList.append(sinkFilter)
 
     def __makeClass( self, expression, preArgList = None ):
         """ make preArgument """
         expList = expression.split( const.SEP_ARGUMENT )
 
-        if 2 != len(expList) :
-            raise BadIniFile( "Invalid class expression (%s)"% expression)
-
         strExp = expList[0] + "("
 
         """ add preArgList """
         if None != preArgList :
-            for i in range(preArgList) :
-                strExp += "preArgList[" + i + "],"
+            for i in range(len(preArgList) ) :
+                strExp += "preArgList[" + str(i) + "],"
 
         """ add argument """
-        strExp += expList[1] + ")"
+        if 2 == len(expList):
+            strExp += expList[1] + ")"
+        elif 1 == len(expList):
+            strExp += ")"
+        else:
+            raise BadIniFile( "Invalid class expression (%s)"% expression)
+
+        logging.info('Factory:__makeClass ' + strExp)
 
         return eval( strExp )
 
@@ -118,8 +128,12 @@ def main():
             iniFile = "./default.ini"
 
         # create Factory
+
+        iniFile = os.path.normpath(iniFile)
         factory = Factory(iniFile)
 
+        sourceFile = os.path.normpath(sourceFile)
+        sinkFile = os.path.normpath(sinkFile)
         factory.create( sourceFile, sinkFile)
 
         factory.run()
@@ -128,8 +142,16 @@ def main():
     else:
         print ("usage : [sourceFile] [destFile] [iniFile]")
 
-        
+def direct( sourceFile, sinkFile, iniFile = './defalut.ini' ):
+    # create Factory
+    factory = Factory(iniFile)
+    factory.create( sourceFile, sinkFile )
+    factory.run()
+
+    #finish
 if __name__ == "__main__":
+    logging.basicConfig(level =logging.INFO)
+#    logging.basicConfig(filename='test.log', level=logging.DEBUG )
     main()
                           
                           

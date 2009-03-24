@@ -1,4 +1,4 @@
-import  threading
+import  threading, logging
 
 class TERMINATE:
     pass
@@ -19,35 +19,48 @@ error = Error()
 class SrcFileFilter(threading.Thread):
     def __init__(self, sinkPipe , sourceFile):
         self.__sinkPipe = sinkPipe
+        logging.info("SrcFileFilter.__init__ " + str(sinkPipe) )
+        logging.info("SrcFileFilter.__init__ read File (%s)" % sourceFile )
         self.__file = open(sourceFile)
         threading.Thread.__init__(self)
         assert(None != sinkPipe)
     def run(self):      # run provieds thread logic
+        logging.info('SrcFileFilter.run')
         #read file
-        lines = self.__fine.readlines()
+        lines = self.__file.readlines()
+        
         for line in lines:
+            logging.debug ('SrcFileFilter:run '+ line)
             self.__sinkPipe.put(line)  #push file data
-
-        self.__sinkPipe.put( queuePipe.TERMINATE)  #terminate job
+        logging.info('SrcFileFilter:run finish job')
+        self.__sinkPipe.put( TERMINATE())  #terminate job
 
 class SinkFileFilter(threading.Thread):
     def __init__(self, sourcePipe , sinkFile ):
         self.__sourcePipe = sourcePipe
+        logging.info("SinkFileFilter.__init__ " + str(sourcePipe) )
         self.__file = open(sinkFile, 'w')
         assert(None != sourcePipe)
         threading.Thread.__init__(self)
     def run(self):
-        data = self.__sourcePipe.get()
-        if isinstance( data, queuePipe.TERMINATE ) :
-            return      #finish job
-
-        self.__file.write(data)
+        
+        logging.info('SinkFileFilter.run')
+        while True:
+            data = self.__sourcePipe.get()
+            if isinstance( data, TERMINATE ) :
+                logging.info('SinkFileFilter:run finish')
+                return      #finish job
+            logging.debug('SinkFileFilter:run input data '+ data )
+            self.__file.write(data)
 
 
 class DelTagFilter(threading.Thread):
-    def __init__(self,  sourcePipe, sinkPipe, tagList ):
+    def __init__(self,  sourcePipe, sinkPipe, *tagList ):
         self.__sourcePipe = sourcePipe
         self.__sinkPipe = sinkPipe
+
+        logging.info('DelTagFilter.__init__ sourcePipe : ' + str(sourcePipe ) )
+        logging.info('DelTagFilter.__init__ sinkPipe : ' + str(sinkPipe) )
         self.__tagList = tagList
         assert(None != sourcePipe)
         assert(None != sinkPipe)
@@ -58,20 +71,29 @@ class DelTagFilter(threading.Thread):
         threading.Thread.__init__(self)
 
     def run(self):
+        logging.info('DelTagFilter.run')
         while True :
             self.__data = self.__sourcePipe.get() # read data
-            if isinstance( self.__data, queuePipe.TERMINATE ) :
+
+            if isinstance( self.__data, TERMINATE ) :
                 if STATE_ENUM.FIND_STARTTAG != self.__state :
                     error.errDesc = "TAG NOT MATCH"
                     error.errCode = ERROR_CODE.TAG_NOT_MATCH
+                    logging.error("---Tag Not match---")
                 self.__sinkPipe.put(self.__data)
+                logging.info('DelTagFilter:run finish job')
                 return          #finish job
 
+            logging.debug('DelTagFilter:run  inputData '+ self.__data)
             self.__startPos = 0                   # not find
             self.__curTag = None
-            __process()                           # process data
+            self.__process()                           # process data
 
-            self.__sinkPipe.put(self.__data)       # send data
+            logging.debug('DelTagFilter:run  SendData '+ self.__data)
+
+            temp = self.__data.strip()
+            if '' != temp :                             #skip empty line
+                self.__sinkPipe.put(self.__data)       # send data
 
     def __process(self):
         while True :
@@ -109,7 +131,7 @@ class DelTagFilter(threading.Thread):
                 endPos = self.__data.find( self.__endTag , findPos )
 
                 if -1 != endPos : # find
-                    self.__data = self.__data[:self.__startPos] + self.__data[endPos:]
+                    self.__data = self.__data[:self.__startPos] + self.__data[ (endPos+1 ):]
                     self.__startPos = 0
                     self.__state = STATE_ENUM.FIND_STARTTAG
                     continue        #re find
