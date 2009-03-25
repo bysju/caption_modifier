@@ -87,8 +87,8 @@ class DelTagFilter(FilterImpl.FilterImpl):
         assert(None != sinkPipe)
         self.__endTag = '>'
         self.__state = STATE_ENUM.FIND_STARTTAG
-        self.__startTagPosition  = 0                # location of start tag
-        self.__endTagPosition    = 0               # location of end tag
+#        self.__startTagPosition  = 0                # location of start tag
+#        self.__endTagPosition    = 0               # location of end tag
         FilterImpl.FilterImpl.__init__(self, sourcePipe, sinkPipe )
 
 #    def run(self):
@@ -169,7 +169,7 @@ class DelTagFilter(FilterImpl.FilterImpl):
                 endPos = data.find( self.__endTag , findPos )
 
                 if -1 != endPos : # find
-                    data = data[:self.__startPos] + data[ (endPos+1 ):]
+                    data = data[:self.__startPos] + data[ (endPos + len(self.__endTag) ):]
                     self.__startPos = 0
                     self.__state = STATE_ENUM.FIND_STARTTAG
                     continue        #re find
