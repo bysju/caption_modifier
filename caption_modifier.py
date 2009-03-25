@@ -154,8 +154,8 @@ def direct( sourceFile, sinkFile, iniFile = './defalut.ini' ):
 
     #finish
 if __name__ == "__main__":
-    logging.basicConfig(level =logging.INFO)
-#    logging.basicConfig(filename='test.log', level=logging.DEBUG )
+#    logging.basicConfig(level =logging.DEBUG)
+    logging.basicConfig(filename='test.log', level=logging.DEBUG )
     main()
                           
                           
