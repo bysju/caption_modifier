@@ -67,7 +67,7 @@ class SinkFileFilter(FilterImpl.FilterImpl):
 #            logging.debug('SinkFileFilter:run input data '+ data )
 #            self.__file.write(data)
     def process(self, data): #override
-        logging.info('SinkFileFilter.run')
+        logging.debug('SinkFileFilter.process ' + str(data) )
         if FilterImpl.FilterImpl.isTerminate(self, data ) :
             return data
         else:

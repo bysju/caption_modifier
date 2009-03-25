@@ -1,4 +1,4 @@
-import const, Filters, queue, sys, os, logging
+import const, Filters, queue, sys, os, logging, AddFilters
 
 class BadIniFile(Exception):
     pass
@@ -154,8 +154,8 @@ def direct( sourceFile, sinkFile, iniFile = './defalut.ini' ):
 
     #finish
 if __name__ == "__main__":
-#    logging.basicConfig(level =logging.DEBUG)
-    logging.basicConfig(filename='test.log', level=logging.DEBUG )
+    logging.basicConfig(level =logging.INFO)
+#    logging.basicConfig(filename='test.log', level=logging.DEBUG )
     main()
                           
                           
