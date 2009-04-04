@@ -12,6 +12,12 @@ const.SEP_KEY_VALUE = ":"
 const.SEP_VALUE = "^"
 const.SEP_ARGUMENT = "|"
 
+def stripLineList( lineList ):
+    resultList = []
+    for line in lineList:
+        resultList.append( line.strip() )
+    return resultList
+
 
 class Factory:
     def __init__(self, iniFile):  #load iniFile
@@ -40,6 +46,8 @@ class Factory:
     def __innerLoad(self, line):
 
         keyValueList  = line.split( const.SEP_KEY_VALUE )
+        #strip
+        keyValueList = stripLineList( keyValueList)
 
         if 2 != len(keyValueList) :  # must conist key : value
             raise BadIniFile("Invalid key value IniFile (%s)" % line )
@@ -69,6 +77,7 @@ class Factory:
         """ make Filters """
         sourcePipe = queueSrc
         for filterExp in self.__dic[const.FILTERS].split( const.SEP_VALUE ) :
+            filterExp = filterExp.strip() # strip
             queue = self.__makeClass( self.__dic[const.PIPE] )
                                  
             sinkPipe = queue
@@ -91,6 +100,8 @@ class Factory:
     def __makeClass( self, expression, preArgList = None ):
         """ make preArgument """
         expList = expression.split( const.SEP_ARGUMENT )
+
+        expList = stripLineList( expList) # strip
 
         strExp = expList[0] + "("
 
