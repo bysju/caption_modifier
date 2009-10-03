@@ -22,6 +22,12 @@ class FilterImpl(threading.Thread):
             if self.isProcessPush(data) :
                 self.push(data)
 
+            if self.isError(data):
+                if None != self.__sinkPipe:
+                    self.push(data)
+                if self.procesError(data):
+                    return
+
             if self.isFinish(data) :
                 self.finish()
                 return                      #finish loop
@@ -60,6 +66,9 @@ class FilterImpl(threading.Thread):
     
     def afterProcess(self, data ) : pass
 
+    def processError(self, data ):
+        return True
+
     def isFinish(self, data ):
         if self.isTerminate(data) :
             return True
@@ -68,6 +77,12 @@ class FilterImpl(threading.Thread):
 
     def isTerminate(self, data):
         if isinstance( data, TERMINATE ) :
+            return True
+        else:
+            return False
+
+    def isError(self, data):
+        if isinstance( data, BaseException ) :
             return True
         else:
             return False
