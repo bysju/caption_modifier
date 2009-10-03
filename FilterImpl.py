@@ -50,7 +50,7 @@ class FilterImpl(threading.Thread):
             return True
 
     def isProcessPush(self, data):
-        if None == self.__sinkPipe or self.isTerminate(data) :
+        if None == self.__sinkPipe or self.isTerminate(data) or self.isError(data) :
             return False
         else:
             return True

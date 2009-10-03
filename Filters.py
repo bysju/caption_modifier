@@ -33,13 +33,16 @@ class SrcFileFilter(FilterImpl.FilterImpl):
 
     def process(self, data): # override
         logging.info('SrcFileFilter.process()')
+        try:
+            #red file
+            lines = self.__file.readlines()
 
-        #red file
-        lines = self.__file.readlines()
-
-        for line in lines:
-            logging.debug('SrcFileFilter.process() ' + line )
-            FilterImpl.FilterImpl.push(self, line ) # write data
+            for line in lines:
+                logging.debug('SrcFileFilter.process() ' + line )
+                FilterImpl.FilterImpl.push(self, line ) # write data
+        except BaseException as err:
+            return err
+            
 
     def isProcessPush(self, data): #override
         return False       # not push
@@ -67,13 +70,15 @@ class SinkFileFilter(FilterImpl.FilterImpl):
 #            logging.debug('SinkFileFilter:run input data '+ data )
 #            self.__file.write(data)
     def process(self, data): #override
-        logging.debug('SinkFileFilter.process ' + str(data) )
-        if FilterImpl.FilterImpl.isTerminate(self, data ) :
-            return data
-        else:
-            self.__file.write(data)
-            return None
-        
+        try:
+            logging.debug('SinkFileFilter.process ' + str(data) )
+            if FilterImpl.FilterImpl.isTerminate(self, data ) :
+                return data
+            else:
+                self.__file.write(data)
+                return None
+        except BaseException as err:
+            return err
         
 
 
@@ -134,47 +139,50 @@ class DelTagFilter(FilterImpl.FilterImpl):
 
 
     def process(self, data): #override
-        while True :
-            if STATE_ENUM.FIND_STARTTAG == self.__state :
-                
-                findPos = -1 # not found
-                
-                for startTag in self.__tagList:
-                    pos = data.find( startTag, self.__startPos )
+        try:
+            while True :
+                if STATE_ENUM.FIND_STARTTAG == self.__state :
                     
-                    if -1 != pos :  # find
-                        if -1 == findPos:      #first find
-                            findPos = pos
-                            self.__curTag = startTag
-                        else:
-                            if findPos > pos:
+                    findPos = -1 # not found
+                    
+                    for startTag in self.__tagList:
+                        pos = data.find( startTag, self.__startPos )
+                        
+                        if -1 != pos :  # find
+                            if -1 == findPos:      #first find
                                 findPos = pos
                                 self.__curTag = startTag
+                            else:
+                                if findPos > pos:
+                                    findPos = pos
+                                    self.__curTag = startTag
 
-                if -1 == findPos :
-                    return data              # if not found nothing to do
-                else:
-                    self.__startPos = findPos
-                    self.__state = STATE_ENUM.FIND_ENDTAG
-                    continue
-            elif STATE_ENUM.FIND_ENDTAG == self.__state:
+                    if -1 == findPos :
+                        return data              # if not found nothing to do
+                    else:
+                        self.__startPos = findPos
+                        self.__state = STATE_ENUM.FIND_ENDTAG
+                        continue
+                elif STATE_ENUM.FIND_ENDTAG == self.__state:
 
-                endPos = -1 #not found
+                    endPos = -1 #not found
 
-                if None != self.__curTag :
-                    findPos = self.__startPos + len(self.__curTag)
-                else:
-                    findPos = self.__startPos
+                    if None != self.__curTag :
+                        findPos = self.__startPos + len(self.__curTag)
+                    else:
+                        findPos = self.__startPos
 
-                endPos = data.find( self.__endTag , findPos )
+                    endPos = data.find( self.__endTag , findPos )
 
-                if -1 != endPos : # find
-                    data = data[:self.__startPos] + data[ (endPos + len(self.__endTag) ):]
-                    self.__startPos = 0
-                    self.__state = STATE_ENUM.FIND_STARTTAG
-                    continue        #re find
-                else :              # not found
-                    data = data[:self.__startPos]
-                    return data          # read next data
-                    
+                    if -1 != endPos : # find
+                        data = data[:self.__startPos] + data[ (endPos + len(self.__endTag) ):]
+                        self.__startPos = 0
+                        self.__state = STATE_ENUM.FIND_STARTTAG
+                        continue        #re find
+                    else :              # not found
+                        data = data[:self.__startPos]
+                        return data          # read next data
+                            
+        except BaseException as err:
+            return err
             
