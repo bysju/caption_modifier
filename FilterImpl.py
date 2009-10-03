@@ -25,7 +25,7 @@ class FilterImpl(threading.Thread):
             if self.isError(data):
                 if None != self.__sinkPipe:
                     self.push(data)
-                if self.procesError(data):
+                if self.processError(data):
                     return
 
             if self.isFinish(data) :

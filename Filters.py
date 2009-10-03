@@ -41,6 +41,7 @@ class SrcFileFilter(FilterImpl.FilterImpl):
                 logging.debug('SrcFileFilter.process() ' + line )
                 FilterImpl.FilterImpl.push(self, line ) # write data
         except BaseException as err:
+            logging.error('SrcFileFilter.process() err ' + str(err) )
             return err
             
 
@@ -78,10 +79,11 @@ class SinkFileFilter(FilterImpl.FilterImpl):
                 self.__file.write(data)
                 return None
         except BaseException as err:
+            logging.error('SinkFileFilter.process err ' + str(err) )
             return err
 
     def processError(self, data) : #override
-        logging.error( data.str() )
+        logging.error( data )
         return True
         
 

@@ -1,4 +1,4 @@
-import const, Filters, queue, sys, os, logging, AddFilters
+import const, Filters, queue, sys, os, logging, AddFilters, SrtFilter
 
 class BadIniFile(Exception):
     pass
