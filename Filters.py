@@ -79,6 +79,10 @@ class SinkFileFilter(FilterImpl.FilterImpl):
                 return None
         except BaseException as err:
             return err
+
+    def processError(self, data) : #override
+        logging.error( data.str() )
+        return True
         
 
 
